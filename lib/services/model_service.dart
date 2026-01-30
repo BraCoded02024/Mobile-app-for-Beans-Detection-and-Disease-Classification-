@@ -6,6 +6,9 @@ class ModelService {
   late Interpreter _plantDetectorInterpreter;
   late Interpreter _beanDensenetInterpreter;
   bool _isInitialized = false;
+  
+  // Configurable threshold - can be adjusted based on real-world performance
+  double _beanDetectionThreshold = 0.35; // Start with a more balanced threshold
 
   Future<void> initializeModels() async {
     if (_isInitialized) return;
@@ -19,6 +22,14 @@ class ModelService {
     }
   }
 
+  // Method to adjust threshold based on real-world testing
+  void setBeanDetectionThreshold(double threshold) {
+    _beanDetectionThreshold = threshold;
+    print('Bean detection threshold updated to: $threshold');
+  }
+
+  double get currentThreshold => _beanDetectionThreshold;
+
   Future<Map<String, dynamic>> runDetectionPipeline(img.Image image) async {
     if (!_isInitialized) await initializeModels();
 
@@ -29,15 +40,39 @@ class ModelService {
       
       print('DEBUG: Plant Detector Raw Score: $rawValue');
 
-      // STRICT THRESHOLD: Must be > 0.8 to be a Bean
-      bool isBean = rawValue > 0.8;
+      // ADAPTIVE THRESHOLD: Balanced approach based on real-world testing
+      // 35% threshold provides better balance between sensitivity and specificity
+      bool isBean = rawValue > _beanDetectionThreshold;
+      
+      // Enhanced confidence levels for better user understanding
+      String confidenceLevel;
+      String recommendation = '';
+      
+      if (rawValue > 0.6) {
+        confidenceLevel = 'Very High confidence';
+        recommendation = 'Definitely a bean crop';
+      } else if (rawValue > 0.45) {
+        confidenceLevel = 'High confidence';
+        recommendation = 'Likely a bean crop';
+      } else if (rawValue > 0.35) {
+        confidenceLevel = 'Medium confidence';
+        recommendation = 'Possibly a bean crop';
+      } else if (rawValue > _beanDetectionThreshold) {
+        confidenceLevel = 'Low confidence';
+        recommendation = 'Uncertain - may be bean crop';
+      } else {
+        confidenceLevel = 'Very low confidence';
+        recommendation = 'Likely not a bean crop';
+      }
 
       if (!isBean) {
         return {
           'isBeanCrop': false,
-          'message': 'Not a bean crop',
+          'message': '$recommendation',
           'plantDetectorConfidence': (rawValue * 100).toStringAsFixed(1),
           'raw': rawValue,
+          'confidenceLevel': confidenceLevel,
+          'recommendation': recommendation,
         };
       }
 
@@ -48,7 +83,9 @@ class ModelService {
         'plantDetectorConfidence': (rawValue * 100).toStringAsFixed(1),
         'beanClass': beanResult['class'],
         'beanConfidence': beanResult['confidence'],
-        'message': 'Bean crop detected!',
+        'message': '$recommendation - ${beanResult['class']} detected',
+        'confidenceLevel': confidenceLevel,
+        'recommendation': recommendation,
       };
     } catch (e) {
       throw Exception('Detection pipeline error: $e');
@@ -87,18 +124,30 @@ class ModelService {
     };
   }
 
-  // Optimized Zero-Centered Normalization [-1, 1]
+  // Enhanced preprocessing with better normalization
   List<dynamic> _preprocess(img.Image image) {
+    // Ensure proper color format
+    final processedImage = img.copyResize(image, width: 224, height: 224);
+    
     var flatList = List<double>.filled(224 * 224 * 3, 0.0);
     int index = 0;
+    
     for (var y = 0; y < 224; y++) {
       for (var x = 0; x < 224; x++) {
-        final pixel = image.getPixel(x, y);
-        flatList[index++] = (pixel.r - 127.5) / 127.5;
-        flatList[index++] = (pixel.g - 127.5) / 127.5;
-        flatList[index++] = (pixel.b - 127.5) / 127.5;
+        final pixel = processedImage.getPixel(x, y);
+        
+        // Extract RGB values (0-255 range)
+        final r = pixel.r.toDouble();
+        final g = pixel.g.toDouble();
+        final b = pixel.b.toDouble();
+        
+        // Normalize to [-1, 1] range (zero-centered)
+        flatList[index++] = (r - 127.5) / 127.5;
+        flatList[index++] = (g - 127.5) / 127.5;
+        flatList[index++] = (b - 127.5) / 127.5;
       }
     }
+    
     return flatList.reshape([1, 224, 224, 3]);
   }
 

@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'providers/task_provider.dart';
 import 'providers/scan_provider.dart';
-import 'auth/signup_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,13 +30,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Task Manager',
+      title: 'Bean Disease Detection',
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'SF Pro Display',
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFD4AF37)),
       ),
-      home: const SignupScreen(),
+      home: const SplashScreen(),
     );
   }
 }

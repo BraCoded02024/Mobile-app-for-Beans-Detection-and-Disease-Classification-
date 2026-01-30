@@ -5,6 +5,8 @@ import 'package:group20b/providers/scan_provider.dart';
 import 'package:group20b/models/scan.dart';
 import 'package:group20b/models/scan_filter.dart';
 import 'package:group20b/screens/tips_screen.dart';
+import 'package:group20b/screens/calibration_screen.dart';
+import 'package:group20b/screens/profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -134,7 +136,15 @@ class _DashboardScreenState extends State<DashboardScreen>
         icon: Icon(icon, size: 28),
         onPressed: () {
           setState(() => _selectedIndex = index);
-          if (index == 2) _showUploadModal();
+          if (index == 2) {
+            _showUploadModal();
+          } else if (index == 3) {
+            // Navigate to Profile Screen
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            );
+          }
         },
         color: isSelected ? Colors.white : Colors.white70,
       ),
@@ -209,6 +219,16 @@ class _DashboardScreenState extends State<DashboardScreen>
             ],
           ),
           const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.tune, color: Color(0xFF463352), size: 28),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CalibrationScreen()),
+              );
+            },
+            tooltip: 'Model Calibration',
+          ),
         ],
       ),
     );

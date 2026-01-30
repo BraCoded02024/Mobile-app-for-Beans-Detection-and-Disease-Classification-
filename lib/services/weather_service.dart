@@ -6,10 +6,10 @@ class WeatherService {
   static const String baseUrl =
       'https://api.openweathermap.org/data/2.5/weather';
 
-  Future<Map<String, dynamic>> fetchCurrentWeather({
-    required double lat,
-    required double lon,
-  }) async {
+  Future<Map<String, dynamic>> getCurrentWeather(
+    double lat,
+    double lon,
+  ) async {
     final uri = Uri.parse(
       '$baseUrl?lat=$lat&lon=$lon&appid=$apiKey&units=metric',
     );
@@ -21,5 +21,13 @@ class WeatherService {
     } else {
       throw Exception('Failed to fetch weather data');
     }
+  }
+
+  // Keep the old method for backward compatibility
+  Future<Map<String, dynamic>> fetchCurrentWeather({
+    required double lat,
+    required double lon,
+  }) async {
+    return getCurrentWeather(lat, lon);
   }
 }

@@ -32,6 +32,9 @@ class ScanProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   Map<String, dynamic>? get lastDetectionResult => _lastDetectionResult;
+  
+  // Expose model service for calibration
+  ModelService get modelService => _modelService;
 
   Future<void> initializeModels() async {
     try {
